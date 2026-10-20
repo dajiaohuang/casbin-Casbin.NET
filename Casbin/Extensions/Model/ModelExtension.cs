@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Casbin.Functions;
 using Casbin.Persist;
@@ -260,6 +261,38 @@ namespace Casbin.Model
             model.GFunctionCachePool.Clear(roleType);
             model.ExpressionHandler.SetFunction(roleType, BuiltInFunctions.GenerateGFunction(
                 assertion.RoleManager, model.GFunctionCachePool.GetCache(roleType)));
+        }
+
+        internal static void RegisterDomainMatchingFunc(this IModel model)
+        {
+            if (model.Sections.ContainsSection(PermConstants.Section.RoleSection) is false
+                || model.Sections.TryGetAssertion(PermConstants.Section.RequestSection,
+                    PermConstants.DefaultRequestType, out RequestAssertion requestAssertion) is false
+                || model.Sections.TryGetAssertion(PermConstants.Section.PolicySection,
+                    PermConstants.DefaultPolicyType, out PolicyAssertion policyAssertion) is false
+                || model.Sections.TryGetAssertion(PermConstants.Section.MatcherSection,
+                    PermConstants.DefaultMatcherType, out MatcherAssertion matcherAssertion) is false
+                || requestAssertion.Tokens.Count < 2 || policyAssertion.Tokens.Count < 2)
+            {
+                return;
+            }
+
+            string requestDomainToken = requestAssertion.Tokens.First(token => token.Value is 1).Key;
+            string policyDomainToken = policyAssertion.Tokens.First(token => token.Value is 1).Key;
+            string matchFunc =
+                $"keyMatch({PermConstants.DefaultRequestType}.{requestDomainToken}, {PermConstants.DefaultPolicyType}.{policyDomainToken})";
+            if (matcherAssertion.Value.Contains(matchFunc) is false)
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<string, RoleAssertion> pair in model.Sections.GetRoleAssertions())
+            {
+                if (pair.Value.GroupPolicyCount > 2)
+                {
+                    pair.Value.RoleManager.AddDomainMatchingFunc(BuiltInFunctions.KeyMatch);
+                }
+            }
         }
 
         /// <summary>

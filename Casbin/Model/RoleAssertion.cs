@@ -11,9 +11,19 @@ public class RoleAssertion : PolicyAssertion
 
     public IRoleManager RoleManager { get; internal set; }
 
+    internal int GroupPolicyCount
+    {
+        get
+        {
+            int paramsIndex = Value.IndexOf('(');
+            string value = paramsIndex is -1 ? Value : Value.Substring(0, paramsIndex);
+            return value.Count(c => c is '_');
+        }
+    }
+
     public void BuildRoleLinks()
     {
-        int count = Value.Count(c => c is '_');
+        int count = GroupPolicyCount;
         if (count < 2)
         {
             throw new InvalidOperationException("the number of \"_\" in role definition should be at least 2.");
@@ -27,7 +37,7 @@ public class RoleAssertion : PolicyAssertion
 
     internal void BuildIncrementalRoleLink(PolicyOperation policyOperation, IEnumerable<string> rule)
     {
-        int count = Value.Count(c => c is '_');
+        int count = GroupPolicyCount;
         if (count < 2)
         {
             throw new InvalidOperationException("the number of \"_\" in role definition should be at least 2.");
@@ -39,7 +49,7 @@ public class RoleAssertion : PolicyAssertion
     internal void BuildIncrementalRoleLink(PolicyOperation policyOperation,
         IEnumerable<string> oldRule, IEnumerable<string> newRule)
     {
-        int count = Value.Count(c => c is '_');
+        int count = GroupPolicyCount;
         if (count < 2)
         {
             throw new InvalidOperationException("the number of \"_\" in role definition should be at least 2.");
@@ -50,7 +60,7 @@ public class RoleAssertion : PolicyAssertion
 
     internal void BuildIncrementalRoleLinks(PolicyOperation policyOperation, IEnumerable<IEnumerable<string>> rules)
     {
-        int count = Value.Count(c => c is '_');
+        int count = GroupPolicyCount;
         if (count < 2)
         {
             throw new InvalidOperationException("the number of \"_\" in role definition should be at least 2.");
@@ -65,7 +75,7 @@ public class RoleAssertion : PolicyAssertion
     internal void BuildIncrementalRoleLinks(PolicyOperation policyOperation,
         IEnumerable<IEnumerable<string>> oldRules, IEnumerable<IEnumerable<string>> newRules)
     {
-        int count = Value.Count(c => c is '_');
+        int count = GroupPolicyCount;
         if (count < 2)
         {
             throw new InvalidOperationException("the number of \"_\" in role definition should be at least 2.");
@@ -198,7 +208,12 @@ public class RoleAssertion : PolicyAssertion
                 policyChildrenMap[parent] = new List<string>(new[] { child });
             }
 
-            refer[parent] = refer[child] = 0;
+            if (refer.ContainsKey(parent) is false)
+            {
+                refer[parent] = 0;
+            }
+
+            refer[child] = 1;
         }
 
         Queue<string> queue = new();

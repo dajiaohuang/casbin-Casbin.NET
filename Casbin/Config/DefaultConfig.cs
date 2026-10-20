@@ -182,7 +182,7 @@ namespace Casbin.Config
             using var streamReader = new StreamReader(stream);
             while ((line = streamReader.ReadLine()) != null)
             {
-                line = line.Split(_defaultComment[0]).First().Trim();
+                line = line.Split(_defaultComment[0], ';').First().Trim();
                 if (line.EndsWith(_defaultFeed))
                 {
                     processedValue += line.Split(_defaultFeed[0]).First();

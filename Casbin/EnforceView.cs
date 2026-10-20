@@ -60,6 +60,7 @@ namespace Casbin
             string effectType = PermConstants.DefaultPolicyEffectType)
         {
             matcher = matcher.Replace('\'', '"');
+            matcher = StringUtil.ReplaceInListOperator(matcher);
             IReadOnlyAssertion requestAssertion = model.Sections.GetRequestAssertion(requestType);
             PolicyAssertion policyAssertion = model.Sections.GetPolicyAssertion(policyType);
             IReadOnlyAssertion effectAssertion = model.Sections.GetPolicyEffectAssertion(effectType);

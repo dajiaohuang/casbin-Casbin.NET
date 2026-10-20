@@ -26,6 +26,13 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Checkout conformance cases
+      uses: actions/checkout@v4
+      with:
+        repository: apache/casbin
+        path: casbin-conformance
+        sparse-checkout: conformance
+
     - name: Setup .NET SDK
       uses: actions/setup-dotnet@v4
       with:
@@ -48,6 +55,8 @@ jobs:
       run: dotnet build -c Release --no-restore
 
     - name: Test solution
+      env:
+        CASBIN_CONFORMANCE_DIR: ${{ github.workspace }}/casbin-conformance/conformance
       run: dotnet test -c Release --no-build --no-restore --results-directory test-results --verbosity normal --collect:"XPlat Code Coverage" `
            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=json,cobertura,lcov,teamcity,opencover
 

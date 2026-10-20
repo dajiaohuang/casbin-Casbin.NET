@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Casbin.Util
@@ -8,6 +9,7 @@ namespace Casbin.Util
     {
         private static readonly Regex s_evalRegex = new(@"\beval\((?<rule>[^)]*)\)");
         private static readonly Regex s_inOperatorRegex = new(@"([a-zA-Z0-9_.()""]+) in ([a-zA-Z0-9_.()""]+)");
+        private static readonly Regex s_inListOperatorRegex = new(@"([a-zA-Z0-9_.]+)\s+in\s+(?:\(([^()]*)\)|\[([^\[\]]*)\])");
 
         /// <summary>
         /// Removes the comments starting with # in the text.
@@ -86,7 +88,7 @@ namespace Casbin.Util
                 {
                     return match.Value;
                 }
-                return rule;
+                return "(" + rule + ")";
             });
         }
 
@@ -108,6 +110,56 @@ namespace Casbin.Util
                 return matchGroups[0].Value;
             });
             return res;
+        }
+
+        /// <summary>
+        /// Replace in operator with a literal list, such as "a in ('b', 'c')", with "(a == 'b' || a == 'c')".
+        /// </summary>
+        /// <param name="expressString"></param>
+        /// <returns></returns>
+        internal static string ReplaceInListOperator(string expressString)
+        {
+            return s_inListOperatorRegex.Replace(expressString, match =>
+            {
+                string item = match.Groups[1].Value;
+                string list = match.Groups[2].Success ? match.Groups[2].Value : match.Groups[3].Value;
+                List<string> values = SplitListValues(list);
+                if (values.Count < 2 && (values.Count is 0 || values[0].StartsWith("\"") is false))
+                {
+                    return match.Value;
+                }
+
+                return "(" + string.Join(" || ", values.Select(value => item + " == " + value)) + ")";
+            });
+        }
+
+        private static List<string> SplitListValues(string list)
+        {
+            List<string> values = new();
+            int start = 0;
+            bool inQuotes = false;
+            for (int i = 0; i <= list.Length; i++)
+            {
+                if (i < list.Length && list[i] is '"')
+                {
+                    inQuotes = !inQuotes;
+                }
+
+                if (i < list.Length && (inQuotes || list[i] is not ','))
+                {
+                    continue;
+                }
+
+                string value = list.Substring(start, i - start).Trim();
+                if (value.Length is not 0)
+                {
+                    values.Add(value);
+                }
+
+                start = i + 1;
+            }
+
+            return values;
         }
     }
 }

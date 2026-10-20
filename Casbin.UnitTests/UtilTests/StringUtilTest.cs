@@ -17,10 +17,10 @@ public class StringUtilTest
     public static IEnumerable<object[]> ReplaceEvalTestData =
     [
         [
-            "eval(rule1)", "a == b",
+            "eval(rule1)", "(a == b)",
             new Dictionary<string, string> { ["rule1"] = "a == b" }],
         [
-            "eval(rule1) && c && d", "a == b && c && d",
+            "eval(rule1) && c && d", "(a == b) && c && d",
             new Dictionary<string, string> { ["rule1"] = "a == b" }
         ],
         [
@@ -30,27 +30,27 @@ public class StringUtilTest
             "eval(rule1) && c && d", "eval(rule1) && c && d", null
         ],
         [
-            "eval(rule1) || eval(rule2)", "a == b || a == c",
+            "eval(rule1) || eval(rule2)", "(a == b) || (a == c)",
             new Dictionary<string, string> { ["rule1"] = "a == b", ["rule2"] = "a == c" }
         ],
         [
-            "eval(rule1) || eval(rule2) && c && d", "a == b || a == c && c && d",
+            "eval(rule1) || eval(rule2) && c && d", "(a == b) || (a == c) && c && d",
             new Dictionary<string, string> { ["rule1"] = "a == b", ["rule2"] = "a == c" }
         ],
         [
-            "eval(rule1) || eval(rule2)", "a == b || eval(rule2)",
+            "eval(rule1) || eval(rule2)", "(a == b) || eval(rule2)",
             new Dictionary<string, string> { ["rule1"] = "a == b" }
         ],
         [
-            "eval(rule1) || eval(rule2) && c && d", "a == b || eval(rule2) && c && d",
+            "eval(rule1) || eval(rule2) && c && d", "(a == b) || eval(rule2) && c && d",
             new Dictionary<string, string> { ["rule1"] = "a == b" }
         ],
         [
-            "eval(rule1) || eval(rule2)", "eval(rule1) || a == c",
+            "eval(rule1) || eval(rule2)", "eval(rule1) || (a == c)",
             new Dictionary<string, string> { ["rule2"] = "a == c" }
         ],
         [
-            "eval(rule1) || eval(rule2) && c && d", "eval(rule1) || a == c && c && d",
+            "eval(rule1) || eval(rule2) && c && d", "eval(rule1) || (a == c) && c && d",
             new Dictionary<string, string> { ["rule2"] = "a == c" }
         ],
         [

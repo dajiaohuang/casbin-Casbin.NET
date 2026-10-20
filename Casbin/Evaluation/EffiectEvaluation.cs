@@ -51,6 +51,7 @@ namespace Casbin.Evaluation
                     break;
 
                 case EffectExpressionType.Priority:
+                case EffectExpressionType.PriorityAllOverride:
                     switch (effect)
                     {
                         case PolicyEffect.Allow:
@@ -75,20 +76,6 @@ namespace Casbin.Evaluation
                             result = false;
                             hitPolicy = true;
                             return true;
-                    }
-                    break;
-
-                case EffectExpressionType.PriorityAllOverride:
-                    switch (effect)
-                    {
-                        case PolicyEffect.Allow:
-                            result = true;
-                            hitPolicy = true;
-                            return false;
-                        case PolicyEffect.Deny:
-                            result = false;
-                            hitPolicy = true;
-                            return false;
                     }
                     break;
 

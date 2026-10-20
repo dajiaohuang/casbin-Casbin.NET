@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace Casbin.Model;
@@ -313,25 +314,19 @@ public partial class DefaultPolicyStore
             }
 
 
-            int PolicyComparison(IPolicyValues p1, IPolicyValues p2)
+            int GetSubjectLevel(IPolicyValues policy)
             {
-                string domain1 = "", domain2 = "";
-                if (domainIndex != -1)
-                {
-                    domain1 = p1[domainIndex];
-                    domain2 = p2[domainIndex];
-                }
-
-                string name1 = nameFormatter(domain1, p1[subjectIndex]);
-                string name2 = nameFormatter(domain2, p2[subjectIndex]);
-
-                return subjectHierarchyMap[name1] - subjectHierarchyMap[name2];
+                string domain = domainIndex != -1 ? policy[domainIndex] : "";
+                string name = nameFormatter(domain, policy[subjectIndex]);
+                return subjectHierarchyMap.TryGetValue(name, out int level) ? level : 0;
             }
 
             Lock.EnterWriteLock();
             try
             {
-                Policy.Sort(PolicyComparison);
+                List<IPolicyValues> sortedPolicy = Policy.OrderByDescending(GetSubjectLevel).ToList();
+                Policy.Clear();
+                Policy.AddRange(sortedPolicy);
             }
             finally
             {

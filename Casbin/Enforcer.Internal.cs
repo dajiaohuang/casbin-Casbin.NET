@@ -302,6 +302,11 @@ public partial class Enforcer
 
         if (context.Explain && effectChain.HitPolicy)
         {
+            if (effectChain.CanChain is false && effectChain.Result is false)
+            {
+                context.Explanations.Clear();
+            }
+
             context.Explanations.Add(policy);
         }
 
@@ -328,7 +333,7 @@ public partial class Enforcer
         Dictionary<string, string> rules = new();
         foreach (KeyValuePair<string, int> rule in context.View.EvalRules)
         {
-            rules[rule.Key] = policyValues[rule.Value];
+            rules[rule.Key] = policyValues[rule.Value].Replace('\'', '"');
         }
 
         expressionString = StringUtil.ReplaceEval(expressionString, rules);
@@ -342,6 +347,7 @@ public partial class Enforcer
             return expressionString;
         }
 
+        expressionString = StringUtil.ReplaceInListOperator(expressionString);
         expressionString = StringUtil.ReplaceInOperator(expressionString);
         return expressionString;
     }

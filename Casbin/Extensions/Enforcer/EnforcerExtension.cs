@@ -28,6 +28,7 @@ namespace Casbin
             }
 
             enforcer.Model = DefaultModel.CreateFromFile(enforcer.Model.Path);
+            enforcer.Model.RegisterDomainMatchingFunc();
         }
 
         #endregion
@@ -129,6 +130,7 @@ namespace Casbin
         public static IEnforcer SetModel(this IEnforcer enforcer, IModel model)
         {
             enforcer.Model = model;
+            model?.RegisterDomainMatchingFunc();
             enforcer.EnforceCache?.Clear();
 #if !NET452
             enforcer.Logger?.LogInformation("Enforcer Cache, Cleared all enforce cache");
