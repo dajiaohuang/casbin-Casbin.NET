@@ -138,16 +138,33 @@ namespace Casbin.Util
             List<string> values = new();
             int start = 0;
             bool inQuotes = false;
+            bool escaped = false;
             for (int i = 0; i <= list.Length; i++)
             {
-                if (i < list.Length && list[i] is '"')
+                if (i < list.Length)
                 {
-                    inQuotes = !inQuotes;
-                }
+                    char current = list[i];
+                    if (inQuotes && escaped)
+                    {
+                        escaped = false;
+                        continue;
+                    }
 
-                if (i < list.Length && (inQuotes || list[i] is not ','))
-                {
-                    continue;
+                    if (inQuotes && current is '\\')
+                    {
+                        escaped = true;
+                        continue;
+                    }
+
+                    if (current is '"')
+                    {
+                        inQuotes = !inQuotes;
+                    }
+
+                    if (inQuotes || current is not ',')
+                    {
+                        continue;
+                    }
                 }
 
                 string value = list.Substring(start, i - start).Trim();

@@ -72,4 +72,13 @@ public class StringUtilTest
         string newExpressionString,
         IDictionary<string, string> rules) =>
         Assert.Equal(newExpressionString, StringUtil.ReplaceEval(oldExpressionString, rules));
+
+    [Fact]
+    public void TestReplaceInListOperatorPreservesEscapedQuotesAndCommas()
+    {
+        const string matcher = "r.obj in (\"a, \\\"b,c\\\"\", \"other\")";
+        const string expected = "(r.obj == \"a, \\\"b,c\\\"\" || r.obj == \"other\")";
+
+        Assert.Equal(expected, StringUtil.ReplaceInListOperator(matcher));
+    }
 }
